@@ -2,7 +2,11 @@ import json
 from flask import Flask, request
 from bot import Bot
 import random
+import wolframalpha
+import wikipedia
 
+app_id ="XA7V4E-68QJHPX8R8"
+client = wolframalpha.Client(app_id)
 
 
 PAGE_ACCESS_TOKEN = 'EAAMGL1Nb3HsBAA4zAY685knfH1s60TkEsC5ru8gmZC0XyHsZAzMKfaWliu7XEZBgfh5VAFdbV4D1ujaZBnpxgwTvMRhyyiDwJZC8Rw30sBC8DpfvOKKcKbZB0idZBW5JpZCo5mudJ5lnujDZCyT5t9yKlicWtv3uBmdPVqxQSZBUT7eQZDZD'
@@ -11,7 +15,7 @@ PAGE_ACCESS_TOKEN = 'EAAMGL1Nb3HsBAA4zAY685knfH1s60TkEsC5ru8gmZC0XyHsZAzMKfaWliu
 GREETINGS = ['hi', 'hello', 'kamusta']
 
 #QUESTIONS
-ASKING_NAME = ['what is your name', 'what is your name?', 'What is your name', 'What is your name?']
+ASKING_NAME = ['what is your name', 'what is your name?', 'What is your name', 'What is your name?',"whats your name"]
 ASKING_LOCATION = ['where you from?',
 					'where you from',
 					'Where You From',
@@ -20,13 +24,18 @@ ASKING_LOCATION = ['where you from?',
 					'are you from?',
 					'ur from?']
 
+ASKING_MY_LOCATION = ['Where am I?',
+						'where am i?',
+						'where am i', 
+						'where i am',
+						'what is my location']
 #OTHER INPUTS
 
 INPUT_CONVO = ['Nice meeting you', 
 				'nice meeting you :)',
 				'Nice name :)',
 				'nice name']
-
+				
 #ANSWER
 app = Flask(__name__)
 ra_aname = ["Hi there!  My name’s Crystel",
@@ -56,7 +65,14 @@ def webhook():
 		for message in messaging_events:
 			user_id = message['sender']['id']
 			text_input = message['message'].get('text')
-			response_text = 'Im still learning  i cannot understand :( please ask new question :) '
+
+			try:
+				res = client.query(text_input)
+				response_text = next(res.results).text
+			except:
+				response_text = wikipedia.summary(text_input)
+				pass
+			
 			if text_input in GREETINGS:
 				response_text = 'Hello:)'
 			elif text_input in ASKING_NAME:
@@ -65,6 +81,8 @@ def webhook():
 				response_text = "I'm from This Page :)"
 			elif text_input in INPUT_CONVO:
 				response_text = "Thank you : ) , By the way how can I assist You?"
+			elif text_input in ASKING_MY_LOCATION:
+				response_text = "I do not know Im still learning to locate you.. :)"
 				
 			print('Message form user ID {} - {}'.format(user_id, text_input))
 			bot.send_text_message(user_id, response_text)
