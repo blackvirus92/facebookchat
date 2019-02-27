@@ -27,8 +27,11 @@ ASKING_LOCATION = ['where you from?',
 ASKING_MY_LOCATION = ['Where am I?',
 						'where am i?',
 						'where am i', 
-						'where i am',
-						'what is my location']
+						'where i am?',
+						'what is my location',
+						'where iam',
+						'where iam?']
+
 #OTHER INPUTS
 
 INPUT_CONVO = ['Nice meeting you', 
@@ -59,7 +62,7 @@ def webhook():
 
 	else:
 		print(request.data)
-		data = json.loads(request.data)
+		data = json.loads(request.data.decode('utf-8'))
 		messaging_events = data ['entry'][0]['messaging']
 		bot = Bot (PAGE_ACCESS_TOKEN)
 		for message in messaging_events:
@@ -70,7 +73,11 @@ def webhook():
 				res = client.query(text_input)
 				response_text = next(res.results).text
 			except:
-				response_text = wikipedia.summary(text_input)
+				try:
+					response_text = wikipedia.summary(text_input)
+				except:
+					response_text = "I Think I need To learn That"
+					pass
 				pass
 			
 			if text_input in GREETINGS:
