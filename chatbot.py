@@ -5,8 +5,20 @@ import random
 import wolframalpha
 import wikipedia
 
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
+
+import time
+
+
+
 app_id ="XA7V4E-68QJHPX8R8"
 client = wolframalpha.Client(app_id)
+
+#stwiches
 
 
 PAGE_ACCESS_TOKEN = 'EAAMGL1Nb3HsBAA4zAY685knfH1s60TkEsC5ru8gmZC0XyHsZAzMKfaWliu7XEZBgfh5VAFdbV4D1ujaZBnpxgwTvMRhyyiDwJZC8Rw30sBC8DpfvOKKcKbZB0idZBW5JpZCo5mudJ5lnujDZCyT5t9yKlicWtv3uBmdPVqxQSZBUT7eQZDZD'
@@ -31,6 +43,7 @@ ASKING_MY_LOCATION = ['Where am I?',
 						'what is my location',
 						'where iam',
 						'where iam?']
+SEND_EMAIL = "send email"
 
 #OTHER INPUTS
 
@@ -68,6 +81,16 @@ def webhook():
 		for message in messaging_events:
 			user_id = message['sender']['id']
 			text_input = message['message'].get('text')
+#recieving "send email"
+			seperator = text_input.split(", ")
+			seprator_output = seperator[0]
+
+# Sending Email Filter
+
+			SEND_MAIL_SYNTAX = text_input.split()
+			OUTPUT_SYNTAX_SEND = SEND_MAIL_SYNTAX[0]
+
+
 
 			try:
 				res = client.query(text_input)
@@ -90,8 +113,47 @@ def webhook():
 				response_text = "Thank you : ) , By the way how can I assist You?"
 			elif text_input in ASKING_MY_LOCATION:
 				response_text = "I do not know Im still learning to locate you.. :)"
-				
-			print('Message form user ID {} - {}'.format(user_id, text_input))
+			elif seprator_output in "send email":
+				response_text = 'Ok send send me the details. By typing "<sendto> <Reciepient E-mail>, <Subject>, <Message>  "' 
+			elif OUTPUT_SYNTAX_SEND in "sendto":
+				try:
+
+					insyntax = text_input.split()
+					insyntax2 = insyntax[1]
+					insyntax3 = insyntax2.split(",")
+					emailsyntax = insyntax3[0]
+
+					subject_syntax = text_input.split(", ")
+					subject_syntax2 = subject_syntax[1]
+
+					message_syntax = text_input.split(", ")
+					message_syntax2 = message_syntax[2]
+
+
+					email_user = 'djaydequina92@gmail.com'
+					email_password = 'Dequina761'
+					email_send = str(emailsyntax)
+					subject = str(subject_syntax2)
+
+					msg = MIMEMultipart()
+					msg['From'] = email_user
+					msg['To'] = email_send
+					msg['Subject'] = subject
+
+					body = str(message_syntax2)
+					msg.attach(MIMEText(body,'plain'))
+					
+					text = msg.as_string()
+					server = smtplib.SMTP('smtp.gmail.com',587)
+					server.starttls()
+					server.login(email_user,email_password)
+
+
+					server.sendmail(email_user,email_send,text)
+					server.quit()
+					response_text = 'The mail has been sent successfully ! :) <3'
+				except:
+					response_text = 'invalid sytax or email'
 			bot.send_text_message(user_id, response_text)
 
 		return '200'
